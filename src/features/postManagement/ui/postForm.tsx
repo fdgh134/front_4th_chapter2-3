@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textarea, Button } from "../../../shared/ui";
-import { Post } from "../../../entities/types";
+import { Post, PostFormState } from "../../../entities/types";
 import { postApi } from "../../../entities/post/api/postApi";
 
 interface PostFormProps {
   post?: Post | undefined;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (formData: PostFormState) => void;
 }
 
 export const PostForm = ({ post, isOpen, onClose, onSuccess }: PostFormProps) => {
@@ -24,7 +24,7 @@ export const PostForm = ({ post, isOpen, onClose, onSuccess }: PostFormProps) =>
       } else {
         await postApi.createPost(formData);
       }
-      onSuccess();
+      onSuccess(formData);
       onClose();
     } catch (error) {
       console.error("오류 발생:", error);

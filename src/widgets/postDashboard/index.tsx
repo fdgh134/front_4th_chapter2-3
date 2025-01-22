@@ -46,32 +46,28 @@ export const PostDashboard = () => {
   // 게시물 가져오기
   const fetchPosts = () => {
     setLoading(true)
-    let postsData: PostApiResponse;
-    let usersData: User[];
-
     fetch(`/api/posts?limit=${limit}&skip=${skip}`)
       .then((response) => response.json())
-      .then((data) => {
-        postsData = data
-        return fetch("/api/users?limit=0&select=username,image")
-      })
-      .then((response) => response.json())
-      .then((users) => {
-        usersData = users.users
-        const postsWithUsers = postsData.posts.map((post: Post) => ({
-          ...post,
-          author: usersData.find((user: User) => user.id === post.userId),
-        }))
-        setPosts(postsWithUsers)
-        setTotal(postsData.total)
-      })
+      .then((postsData: PostApiResponse) => 
+        fetch("/api/users?limit=0&select=username,image")
+          .then((response) => response.json())
+          .then((usersResponse) => {
+            const usersData: User[] = usersResponse.users;
+            const postsWithUsers = postsData.posts.map((post: Post) => ({
+              ...post,
+              author: usersData.find((user: User) => user.id === post.userId),
+            }));
+            setPosts(postsWithUsers);
+            setTotal(postsData.total);
+          })
+      )
       .catch((error) => {
-        console.error("게시물 가져오기 오류:", error)
+        console.error("게시물 가져오기 오류:", error);
       })
       .finally(() => {
-        setLoading(false)
-      })
-  }
+        setLoading(false);
+      });
+  };
 
   // 태그 가져오기
   const fetchTags = async () => {
@@ -87,31 +83,35 @@ export const PostDashboard = () => {
   // 태그별 게시물 가져오기
   const fetchPostsByTag = async (tag: string) => {
     if (!tag || tag === "all") {
-      fetchPosts()
-      return
+      fetchPosts();
+      return;
     }
-    setLoading(true)
+  
+    setLoading(true);
     try {
       const [postsResponse, usersResponse] = await Promise.all([
         fetch(`/api/posts/tag/${tag}`),
         fetch("/api/users?limit=0&select=username,image"),
-      ])
-      const postsData = await postsResponse.json()
-      const usersData = await usersResponse.json()
-
+      ]);
+  
+      const postsData = await postsResponse.json();
+      const usersData = await usersResponse.json();
+  
       const postsWithUsers = postsData.posts.map((post: Post) => ({
         ...post,
         author: usersData.users.find((user: User) => user.id === post.userId),
-      }))
-
-      setPosts(postsWithUsers)
-      setTotal(postsData.total)
+      }));
+  
+      setPosts(postsWithUsers);
+      setTotal(postsData.total);
     } catch (error) {
-      console.error("태그별 게시물 가져오기 오류:", error)
+      console.error("태그별 게시물 가져오기 오류:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-  }
+  };
 
+  // 정렬 핸들러
   const handleSortByChange = (value: SortBy) => {
     setFilters({ sortBy: value });
   };
@@ -120,46 +120,62 @@ export const PostDashboard = () => {
     setFilters({ sortOrder: value });
   };
 
-  // 초기 데이터 로드 및 URL 동기화
+  // 초기 데이터 로드
   useEffect(() => {
-    fetchTags()
-  }, [])
+    fetchTags();
+  }, []);
 
-  useEffect(() => {
-    if (selectedTag) {
-      fetchPostsByTag(selectedTag)
-    } else {
-      fetchPosts()
-    }
-    updateURL()
-  }, [skip, limit, sortBy, sortOrder, searchTerm, selectedTag]);
-
+  // URL 파라미터 및 상태 동기화
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
-    setPagination({
-     skip: parseInt(params.get("skip") || "0"),
-     limit: parseInt(params.get("limit") || "10")
-   });
-
-    setSearchTerm(params.get("search") || "");
+    const newSkip = parseInt(params.get("skip") || "0");
+    const newLimit = parseInt(params.get("limit") || "10");
+    const newSearchTerm = params.get("search") || "";
+    const newSelectedTag = params.get("tag") || "";
 
     const sortByParam = params.get("sortBy");
+    const sortOrderParam = params.get("sortOrder");
+
     const validSortBy = (val: string | null): val is SortBy => 
       val !== null && ['none', 'id', 'title', 'reactions'].includes(val);
 
-    const sortOrderParam = params.get("sortOrder");
     const validSortOrder = (val: string | null): val is SortOrder =>
       val !== null && ['asc', 'desc'].includes(val);
-   
-    setFilters({
-      sortBy: validSortBy(sortByParam) ? sortByParam : 'none',
-      sortOrder: validSortOrder(sortOrderParam) ? sortOrderParam : 'asc'
-    });
 
-    setSelectedTag(params.get("tag") || "");
-  }, [location.search]);
+    // 실제 값이 변경된 경우에만 상태 업데이트
+    const shouldUpdate = 
+      newSkip !== skip ||
+      newLimit !== limit ||
+      newSearchTerm !== searchTerm ||
+      newSelectedTag !== selectedTag ||
+      (validSortBy(sortByParam) && sortByParam !== sortBy) ||
+      (validSortOrder(sortOrderParam) && sortOrderParam !== sortOrder);
 
+    if (shouldUpdate) {
+      // 배치로 상태 업데이트
+      setPagination({ skip: newSkip, limit: newLimit });
+      setSearchTerm(newSearchTerm);
+      setSelectedTag(newSelectedTag);
+      
+      setFilters({
+        sortBy: validSortBy(sortByParam) ? sortByParam : 'none',
+        sortOrder: validSortOrder(sortOrderParam) ? sortOrderParam : 'asc'
+      });
+    }
+  }, [location.search, skip, limit, searchTerm, selectedTag, sortBy, sortOrder]);
+
+  // 데이터 fetching 및 URL 업데이트
+  useEffect(() => {
+    if (selectedTag) {
+      fetchPostsByTag(selectedTag);
+    } else {
+      fetchPosts();
+    }
+    updateURL();
+  }, [skip, limit, sortBy, sortOrder, searchTerm, selectedTag]);
+
+  // 페이지네이션 핸들러
   const handleLimitChange = (newLimit: number) => {
     setPagination({ limit: newLimit });
   };
@@ -184,7 +200,10 @@ export const PostDashboard = () => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           selectedTag={selectedTag}
-          setSelectedTag={setSelectedTag}
+          setSelectedTag={(tag) => {
+            setSelectedTag(tag);
+            updateURL();
+          }}
           sortBy={sortBy as SortBy}
           setSortBy={handleSortByChange}
           sortOrder={sortOrder as SortOrder}
