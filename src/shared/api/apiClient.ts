@@ -1,15 +1,14 @@
 import { AppError, handleError } from "../lib/utils/errorHelper";
 import { createQueryString } from "../lib/utils/urlHelper";
 import { ApiResponse } from "./types";
-import { API_BASE_URL } from "../config/constants";
-
+import { CONFIG } from '../config';
 
 interface RequestOptions extends RequestInit {
   query?: Record<string, string | number | boolean | undefined>;
 }
 
 async function request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  const url = new URL(`${CONFIG.API.BASE_URL}${endpoint}`);
   
   if (options?.query) {
     url.search = createQueryString(options.query);

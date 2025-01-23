@@ -4,7 +4,7 @@ import { Post, PostFormState } from "../../../entities/types";
 import { postApi } from "../../../entities/post/api/postApi";
 
 interface PostFormProps {
-  post?: Post | undefined;
+  post?: Post;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (formData: PostFormState) => void;

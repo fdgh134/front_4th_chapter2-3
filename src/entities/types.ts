@@ -65,23 +65,6 @@ export interface PostFormState {
   userId: number;
 }
 
-export interface PostManagementState {
-  selectedPost: Post | null;
-  selectedUser: User | null;
-  isAddDialogOpen: boolean;
-  isEditDialogOpen: boolean;
-  isDetailDialogOpen: boolean;
-  isUserModalOpen: boolean;
-}
-
-export type PostManagementAction =
-  | { type: "SET_SELECTED_POST"; payload: Post | null }
-  | { type: "SET_ADD_DIALOG_OPEN"; payload: boolean }
-  | { type: "SET_EDIT_DIALOG_OPEN"; payload: boolean }
-  | { type: "SET_DETAIL_DIALOG_OPEN"; payload: boolean }
-  | { type: "SET_USER_MODAL_OPEN"; payload: boolean }
-  | { type: "SET_SELECTED_USER"; payload: User | null }
-  
 export interface CommentFormState {
   body: string;
   postId: number;
@@ -120,6 +103,7 @@ export interface DashboardContentProps {
   posts: Post[];
   loading: boolean;
   total: number;
+  onPostDetail: (postId: number) => void;
 }
 
 export interface PostPaginationProps {
@@ -133,12 +117,57 @@ export interface PostPaginationProps {
 
 export interface PostTableProps {
   posts: Post[];
-  searchQuery: string;
-  selectedTag: string;
-  highlight: string;
+  highlight?: string;
   onEdit: (post: Post) => void;
   onDelete: (id: number) => void;
   onDetailView: (post: Post) => void;
-  onTagClick: (tag: string) => void;
   onUserClick?: (author: User | undefined) => void;
+}
+
+export interface PostsResponse {
+  posts: Post[];
+  total: number;
+}
+
+export interface TagsResponse {
+  tags: Array<{
+    slug: string;
+    url: string;
+  }>;
+}
+
+export interface CommentResponse {
+  comments: Comment[];
+  total: number;
+}
+
+export interface CommentFormProps {
+  comment?: Comment;
+  postId: number;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export interface CommentListProps {
+  postId: number;
+  onCommentUpdate: () => void;
+}
+
+export interface UsersResponse {
+  users: User[];
+  total: number;
+}
+
+export interface CommentEditFormProps {
+  comment: Comment;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (updatedComment: Comment) => void;
+}
+
+export interface PostDetailDialogProps {
+  post: Post;
+  isOpen: boolean;
+  onClose: () => void;
 }

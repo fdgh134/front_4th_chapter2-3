@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { PostFormState, PostFilters, PaginationParams } from "../../../entities/types";
 import { usePostActions } from "../../../entities/post/model/usePostActions";
-import { usePostManagement } from "../model/context";
+import { usePostManagement } from "../model/postContext";
 
 export const usePostForm = (initialData?: Partial<PostFormState>) => {
   const [formData, setFormData] = useState<PostFormState>({

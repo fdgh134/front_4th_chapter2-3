@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { usePostStore } from "../../../entities/post/model/store";
-import { PostTable } from "../../../entities/post/ui/postCard";
+import { PostTable } from "../../../features/postManagement/ui/postTable";
 import { postApi } from "../../../entities/post/api/postApi";
-import { usePostManagement } from "../../../features/postManagement/model/context";
+import { usePostManagement } from "../../../features/postManagement/model/postContext";
 import { Post, User, DashboardContentProps  } from "../../../entities/types";
 
 export const DashboardContent = ({ posts }: DashboardContentProps) => {

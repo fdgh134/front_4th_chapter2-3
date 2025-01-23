@@ -1,11 +1,19 @@
 import React from "react";
-import { withRouter } from "./router";
-import { withStore } from "./store";
+import { PostProvider } from "../../features/postManagement/model/postContext";
+import { UserProvider } from "../../features/userManagement/model/userContext";
+import { CommentProvider } from "../../features/commentManagement/model/commentContext";
+import { StoreProvider } from "./provider";
 
-type Props = {
-  children?: React.ReactElement;
-};
-
-export const withProviders = (Component: React.ComponentType<Props>) => {
-  return withRouter(withStore(Component));
+export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <StoreProvider>
+      <UserProvider>
+        <CommentProvider>
+          <PostProvider>
+            {children}
+          </PostProvider>
+        </CommentProvider>
+      </UserProvider>
+    </StoreProvider>
+  );
 };

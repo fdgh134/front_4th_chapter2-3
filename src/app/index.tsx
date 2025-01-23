@@ -1,21 +1,23 @@
-import { withProviders } from "./providers";
-import { Routing } from "../pages";
+import { BrowserRouter } from 'react-router-dom';
+import { AppProviders } from './providers';
+import { AppRoutes } from './router';
 import { Header } from "../widgets/ui/Header";
 import { Footer } from "../widgets/ui/Footer";
-import { PostManagementProvider } from "../features/postManagement/model/context";
 
-const AppComponent = () => {
+const App = () => {
   return (
-    <PostManagementProvider>
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          <Routing />
-        </main>
-        <Footer />
-      </div>
-    </PostManagementProvider>
+    <BrowserRouter>
+      <AppProviders>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8">
+            <AppRoutes />
+          </main>
+          <Footer />
+        </div>
+      </AppProviders>
+    </BrowserRouter>
   );
 };
 
-export const App = withProviders(AppComponent);
+export default App;
