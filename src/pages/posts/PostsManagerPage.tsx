@@ -12,6 +12,12 @@ import { PostsFilters } from "../../widgets/posts/PostsFilters/PostsFilters";
 import { PostsPagination } from "../../widgets/posts/PostsPagination/PostsPagination";
 import { Post } from "../../entities/posts";
 import { User } from "../../entities/users";
+import { 
+  AddPostModal, 
+  EditPostModal, 
+  PostDetailModal, 
+  UserDetailModal 
+} from "./modals";
 
 const PostsManagerPage = () => {
   const navigate = useNavigate();
@@ -21,13 +27,14 @@ const PostsManagerPage = () => {
   const store = useStore();
   const { posts, loading, total } = store.posts;
   const { tags } = store.tags;
+  const { selectedUser } = store.users;
   
   const { fetchPostsTag } = usePostTag();
   const { searchPosts } = usePostSearch();
   const { createPost, updatePost, deletePost } = usePostCard();
   const { fetchUserDetails } = useUserFeatures();
 
-  // 로컬 스테이트
+  // URL 기반 상태
   const [skip, setSkip] = useState(parseInt(queryParams.get("skip") || "0"));
   const [limit, setLimit] = useState(parseInt(queryParams.get("limit") || "10"));
   const [searchQuery, setSearchQuery] = useState(queryParams.get("search") || "");
@@ -35,13 +42,13 @@ const PostsManagerPage = () => {
   const [sortOrder, setSortOrder] = useState(queryParams.get("sortOrder") || "asc");
   const [selectedTag, setSelectedTag] = useState(queryParams.get("tag") || "");
   
+  // 모달 상태
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPostDetailDialog, setShowPostDetailDialog] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
 
-  // URL 업데이트
   const updateURL = () => {
     const params = new URLSearchParams();
     if (skip) params.set("skip", skip.toString());
@@ -53,7 +60,16 @@ const PostsManagerPage = () => {
     navigate(`?${params.toString()}`);
   };
 
-  // 이벤트 핸들러
+  const handleAddPost = async (post: Omit<Post, 'id'>) => {
+    await createPost(post);
+    setShowAddDialog(false);
+  };
+
+  const handleEditPost = async (post: Post) => {
+    await updatePost(post.id, post);
+    setShowEditDialog(false);
+  };
+
   const handleTagChange = (tag: string) => {
     setSelectedTag(tag);
     fetchPostsTag(tag);
@@ -71,7 +87,6 @@ const PostsManagerPage = () => {
     setShowUserModal(true);
   };
 
-  // 초기 데이터 로딩
   useEffect(() => {
     if (selectedTag) {
       fetchPostsTag(selectedTag);
@@ -79,7 +94,6 @@ const PostsManagerPage = () => {
     updateURL();
   }, [skip, limit, sortBy, sortOrder, selectedTag]);
 
-  // URL 파라미터 동기화
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setSkip(parseInt(params.get("skip") || "0"));
@@ -126,7 +140,7 @@ const PostsManagerPage = () => {
                 setSelectedPost(post);
                 setShowEditDialog(true);
               }}
-              onDeleteClick={(id) => deletePost(id)}
+              onDeleteClick={deletePost}
               onPostClick={(post) => {
                 setSelectedPost(post);
                 setShowPostDetailDialog(true);
@@ -145,6 +159,32 @@ const PostsManagerPage = () => {
           />
         </div>
       </CardContent>
+
+      <AddPostModal 
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSubmit={handleAddPost}
+      />
+
+      <EditPostModal
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        post={selectedPost}
+        onSubmit={handleEditPost}
+      />
+
+      <PostDetailModal
+        open={showPostDetailDialog}
+        onOpenChange={setShowPostDetailDialog}
+        post={selectedPost}
+        searchQuery={searchQuery}
+      />
+
+      <UserDetailModal
+        open={showUserModal}
+        onOpenChange={setShowUserModal}
+        user={selectedUser}
+      />
     </Card>
   );
 };
