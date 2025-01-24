@@ -1,4 +1,4 @@
-import { commentApi } from "../../../entities/comment/api/commentApi";
+import { commentApi } from "../../../entities/comments/api/commentApi";
 import { CommentFormProps } from "../../../entities/types";
 import { useState } from "react";
 import { 

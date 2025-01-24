@@ -2,7 +2,7 @@ import { CommentListProps, Comment, User, Post } from "../../../entities/types";
 import { useState, useEffect } from "react";
 import { ThumbsUp, Edit2, Trash2 } from "lucide-react";
 import { CommentForm } from "./commentForm";
-import { UserCard } from "../../../entities/user/ui/userCard";
+import { UserCard } from "../../../entities/users/ui/userCard";
 import { 
   Dialog,
   DialogContent,
