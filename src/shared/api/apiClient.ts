@@ -7,7 +7,7 @@ interface RequestOptions extends RequestInit {
   query?: Record<string, string | number | boolean | undefined>;
 }
 
-async function request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+const request = async <T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> => {
   const url = new URL(`${CONFIG.API.BASE_URL}${endpoint}`);
   
   if (options?.query) {
@@ -32,15 +32,11 @@ async function request<T>(endpoint: string, options?: RequestOptions): Promise<A
     }
 
     const data = await response.json();
-
-    return {
-      data,
-      status: response.status,
-    };
+    return { data, status: response.status };
   } catch (error) {
     throw handleError(error);
   }
-}
+};
 
 export const apiClient = {
   get: <T>(endpoint: string, options?: Omit<RequestOptions, "body">) => 
@@ -56,7 +52,7 @@ export const apiClient = {
   put: <T>(endpoint: string, data: unknown, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
-      method: "PUT",
+      method: "PUT", 
       body: JSON.stringify(data),
     }),
 

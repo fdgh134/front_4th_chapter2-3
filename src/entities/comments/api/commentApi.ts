@@ -1,25 +1,27 @@
 import { apiClient } from "../../../shared/api";
-import { Comment, CommentResponse } from '../../types';
 
 export const commentApi = {
-  // 댓글 조회
-  getCommentsByPostId: (postId: number) =>
-    apiClient.get<CommentResponse>(`/api/comments/post/${postId}`),
+  getByPostId: async (postId: number) => {
+    const response = await apiClient.get(`/comments/post/${postId}`);
+    return response.data;
+  },
 
-  getCommentById: (id: number) =>
-    apiClient.get<Comment>(`/api/comments/${id}`),
+  create: async (comment: Omit<Comment, 'id' | 'user'>) => {
+    const response = await apiClient.post('/comments/add', comment);
+    return response.data;
+  },
 
-  // 댓글 생성/수정/삭제
-  createComment: (comment: Omit<Comment, 'id' | 'user'>) =>
-    apiClient.post<Comment>('/api/comments/add', comment),
+  update: async (id: number, body: string) => {
+    const response = await apiClient.put(`/comments/${id}`, { body });
+    return response.data;
+  },
 
-  updateComment: (id: number, body: string) =>
-    apiClient.put<Comment>(`/api/comments/${id}`, { body }),
+  delete: async (id: number) => {
+    await apiClient.delete(`/comments/${id}`);
+  },
 
-  deleteComment: (id: number) =>
-    apiClient.delete(`/api/comments/${id}`),
-  
-  // 댓글 좋아요
-  updateLikes: (id: number, data: { likes: number; userId?: number }) =>
-    apiClient.patch<Comment>(`/api/comments/${id}`, data)
+  like: async (id: number, likes: number) => {
+    const response = await apiClient.patch(`/comments/${id}`, { likes });
+    return response.data;
+  }
 };
