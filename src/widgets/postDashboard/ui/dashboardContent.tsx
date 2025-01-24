@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePostStore } from "../../../entities/post/model/store";
-import { PostTable } from "../../../features/postManagement/ui/postTable";
+import { PostTable } from "../../../features/postManagement/ui/PostTable";
 import { postApi } from "../../../entities/post/api/postApi";
 import { usePostManagement } from "../../../features/postManagement/model/postContext";
 import { Post, User, DashboardContentProps  } from "../../../entities/types";

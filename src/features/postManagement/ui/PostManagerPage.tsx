@@ -4,13 +4,12 @@ import { usePostActions } from "../model/postActions";
 import { useUserActions } from "../../userManagement/model/userActions";
 import { useCommentActions } from "../../commentManagement/model/commentActions";
 import { PostDashboard } from "../../../widgets/postDashboard";
-import { PostTable } from "./PostTable";
 import { PostForm } from "./postForm";
 import { PostDetailDialog } from "./postDetailDialog";
 import { UserModal } from "../../userManagement/ui/UserModal";
 import { CommentList } from "../../commentManagement/ui/commentList";
 
-export const PostsManagerPage: React.FC = () => {
+const PostsManagerPage: React.FC = () => {
   const { state, dispatch } = usePostContext();
   const postActions = usePostActions();
   const userActions = useUserActions();
@@ -104,3 +103,5 @@ export const PostsManagerPage: React.FC = () => {
     </div>
   );
 };
+
+export default PostsManagerPage;
