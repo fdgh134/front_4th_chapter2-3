@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Post } from "../../../entities/posts";
-import { CommentItem } from "../../../entities/comments";
+import { CommentItem, IComment } from "../../../entities/comments";
 import { Plus } from "lucide-react";
 import { useCommentFeatures } from "../../../features/comments/model";
 import { useCommentStore } from "../../../entities/comments";
 import { AddCommentModal } from "./AddCommentModal";
+import { EditCommentModal } from "./EditCommentModal";
 import { 
   Dialog, 
   DialogContent,
@@ -22,6 +23,9 @@ interface PostDetailModalProps {
 
 export const PostDetailModal = ({ open, onOpenChange, post, searchQuery }: PostDetailModalProps) => {
   const [showAddComment, setShowAddComment] = useState(false);
+  const [showEditComment, setShowEditComment] = useState(false);
+  const [selectedComment, setSelectedComment] = useState<IComment | null>(null);
+  
   const { comments } = useCommentStore();
   const { fetchComments, likeComment, deleteComment } = useCommentFeatures();
 
@@ -53,6 +57,11 @@ export const PostDetailModal = ({ open, onOpenChange, post, searchQuery }: PostD
     }
   };
 
+  const handleEditComment = (comment: IComment) => {
+    setSelectedComment(comment);
+    setShowEditComment(true);
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,7 +84,7 @@ export const PostDetailModal = ({ open, onOpenChange, post, searchQuery }: PostD
                   comments={comments[post.id]}
                   onLike={handleLikeComment}
                   onDelete={(commentId) => deleteComment(commentId, post.id)}
-                  onEdit={() => {}} // TODO: 댓글 수정 기능 구현
+                  onEdit={handleEditComment}
                 />
               )}
             </div>
@@ -88,6 +97,12 @@ export const PostDetailModal = ({ open, onOpenChange, post, searchQuery }: PostD
         onOpenChange={setShowAddComment}
         postId={post.id}
       />
-  </>
+
+      <EditCommentModal
+        open={showEditComment}
+        onOpenChange={setShowEditComment}
+        comment={selectedComment}
+      />
+    </>
   );
 };

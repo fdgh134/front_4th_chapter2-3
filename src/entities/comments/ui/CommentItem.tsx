@@ -1,11 +1,11 @@
 import { Button } from "../../../shared/ui";
 import { ThumbsUp, Edit2, Trash2 } from "lucide-react";
-import { Comment } from "../model/types";
+import { IComment } from "../model/types";
 
 interface CommentItemProps {
-  comments: Comment[];
+  comments: IComment[];
   onLike: (commentId: number) => void;
-  onEdit: (comment: Comment) => void;
+  onEdit: (comment: IComment) => void;
   onDelete: (commentId: number) => void;
 }
 

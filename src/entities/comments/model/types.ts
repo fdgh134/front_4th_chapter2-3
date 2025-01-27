@@ -1,12 +1,12 @@
 import { User } from "../../users/model/types";
 
-export interface Comment {
+export interface IComment {
   id: number;
-  postId: number;
   body: string;
+  postId: number;
   userId: number;
   user: User;
   likes: number;
 }
 
-export type NewComment = Pick<Comment, "body" | "postId" | "userId">;
+export type NewComment = Pick<IComment, "body" | "postId" | "userId">;
