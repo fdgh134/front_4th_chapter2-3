@@ -8,3 +8,5 @@ export interface Comment {
   user: User;
   likes: number;
 }
+
+export type NewComment = Pick<Comment, "body" | "postId" | "userId">;

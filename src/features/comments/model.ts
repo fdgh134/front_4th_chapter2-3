@@ -1,7 +1,6 @@
-import { useCommentStore } from "../../entities/comments";
+import { NewComment, useCommentStore } from "../../entities/comments";
 import { useCallback } from "react";
 import { commentApi } from "../../entities/comments";
-import { Comment } from "../../entities/comments";
 
 export const useCommentFeatures = () => {
   const { 
@@ -26,7 +25,7 @@ export const useCommentFeatures = () => {
     }
   }, [setLoading, setComments]);
 
-  const addComment = useCallback(async (comment: Omit<Comment, "id" | "user">) => {
+  const addComment = useCallback(async (comment: NewComment) => {
     try {
       const newComment = await commentApi.create(comment);
       addStoreComment(newComment);

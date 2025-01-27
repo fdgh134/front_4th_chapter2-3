@@ -1,5 +1,5 @@
 import { apiClient } from "../../../shared/api";
-import { Comment } from "../model/types";
+import { Comment, NewComment } from "../model/types";
 
 export const commentApi = {
   getByPostId: async (postId: number) => {
@@ -9,7 +9,7 @@ export const commentApi = {
     return response.data;
   },
 
-  create: async (comment: Omit<Comment, "id" | "user">) => {
+  create: async (comment: NewComment) => {
     const response = await apiClient.post<Comment>("/comments/add", comment);
     return response.data;
   },
