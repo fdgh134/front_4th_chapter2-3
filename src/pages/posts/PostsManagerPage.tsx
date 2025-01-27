@@ -18,6 +18,7 @@ import {
   PostDetailModal, 
   UserDetailModal 
 } from "./modals";
+import { usePostSorting } from "../../features/posts";
 
 const PostsManagerPage = () => {
   const navigate = useNavigate();
@@ -33,13 +34,18 @@ const PostsManagerPage = () => {
   const { searchPosts } = usePostSearch();
   const { createPost, updatePost, deletePost } = usePostCard();
   const { fetchUserDetails } = useUserFeatures();
+  const { sortPosts } = usePostSorting();
 
   // URL 기반 상태
   const [skip, setSkip] = useState(parseInt(queryParams.get("skip") || "0"));
   const [limit, setLimit] = useState(parseInt(queryParams.get("limit") || "10"));
   const [searchQuery, setSearchQuery] = useState(queryParams.get("search") || "");
-  const [sortBy, setSortBy] = useState(queryParams.get("sortBy") || "");
-  const [sortOrder, setSortOrder] = useState(queryParams.get("sortOrder") || "asc");
+  const [sortBy, setSortBy] = useState<"id" | "title" | "reactions" | "none">(
+    (queryParams.get("sortBy") as "id" | "title" | "reactions" | "none") || "none"
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
+    (queryParams.get("sortOrder") as "asc" | "desc") || "asc"
+  );
   const [selectedTag, setSelectedTag] = useState(queryParams.get("tag") || "");
   
   // 모달 상태
@@ -60,7 +66,7 @@ const PostsManagerPage = () => {
     navigate(`?${params.toString()}`);
   };
 
-  const handleAddPost = async (post: Omit<Post, 'id'>) => {
+  const handleAddPost = async (post: Omit<Post, "id">) => {
     await createPost(post);
     setShowAddDialog(false);
   };
@@ -68,6 +74,13 @@ const PostsManagerPage = () => {
   const handleEditPost = async (post: Post) => {
     await updatePost(post.id, post);
     setShowEditDialog(false);
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy as "id" | "title" | "reactions" | "none");
+    setSortOrder(newSortOrder);
+    sortPosts(newSortBy as "id" | "title" | "reactions" | "none", newSortOrder);
+    updateURL();
   };
 
   const handleTagChange = (tag: string) => {
@@ -92,15 +105,22 @@ const PostsManagerPage = () => {
       fetchPostsTag(selectedTag);
     }
     updateURL();
-  }, [skip, limit, sortBy, sortOrder, selectedTag]);
+  }, [skip, limit, selectedTag]);
+
+  // 정렬 상태가 변경될 때마다 정렬 적용
+  useEffect(() => {
+    if (sortBy !== "none") {
+      sortPosts(sortBy as "id" | "title" | "reactions" | "none", sortOrder as "asc" | "desc");
+    }
+  }, [sortBy, sortOrder]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setSkip(parseInt(params.get("skip") || "0"));
     setLimit(parseInt(params.get("limit") || "10"));
     setSearchQuery(params.get("search") || "");
-    setSortBy(params.get("sortBy") || "");
-    setSortOrder(params.get("sortOrder") || "asc");
+    setSortBy((params.get("sortBy") as "id" | "title" | "reactions" | "none") || "none");
+    setSortOrder((params.get("sortOrder") as "asc" | "desc") || "asc");
     setSelectedTag(params.get("tag") || "");
   }, [location.search]);
 
@@ -125,8 +145,8 @@ const PostsManagerPage = () => {
             tags={tags}
             onSearchChange={setSearchQuery}
             onTagChange={handleTagChange}
-            onSortByChange={setSortBy}
-            onSortOrderChange={setSortOrder}
+            onSortByChange={(value) => handleSortChange(value, sortOrder)}
+            onSortOrderChange={(value) => handleSortChange(sortBy, value as "asc" | "desc")}
             onSearch={handleSearch}
           />
 

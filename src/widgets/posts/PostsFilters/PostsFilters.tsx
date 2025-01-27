@@ -5,13 +5,13 @@ import { Tag } from "../../../entities/tags"
 interface PostsFiltersProps {
   searchQuery: string;
   selectedTag: string;
-  sortBy: string;
-  sortOrder: string;
+  sortBy: "id" | "title" | "reactions" | "none";
+  sortOrder: "asc" | "desc";
   tags: Tag[];
   onSearchChange: (value: string) => void;
   onTagChange: (value: string) => void;
-  onSortByChange: (value: string) => void;
-  onSortOrderChange: (value: string) => void;
+  onSortByChange: (value: "id" | "title" | "reactions" | "none") => void;
+  onSortOrderChange: (value: "asc" | "desc") => void;
   onSearch: () => void;
 }
 
