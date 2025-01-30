@@ -1,21 +1,29 @@
 import { AppError, handleError } from "../lib/utils/errorHelper";
 import { createQueryString } from "../lib/utils/urlHelper";
 import { ApiResponse } from "./types";
-import { CONFIG } from '../config';
 
 interface RequestOptions extends RequestInit {
-  query?: Record<string, string | number | boolean | undefined>;
+  query?: Record<string, string | number | boolean | null | undefined>;
 }
 
-const request = async <T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> => {
-  const url = new URL(`${CONFIG.API.BASE_URL}${endpoint}`);
-  
-  if (options?.query) {
-    url.search = createQueryString(options.query);
-  }
-
+async function request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(url.toString(), {
+    const url = endpoint.startsWith('/api') 
+      ? endpoint
+      : `/api${endpoint}`;
+    
+    let finalUrl = url;
+    if (options?.query) {
+      const filteredQuery = Object.fromEntries(
+        Object.entries(options.query)
+          .filter(([_, value]) => value !== null && value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ) as Record<string, string>;
+      
+      finalUrl += `?${createQueryString(filteredQuery)}`;
+    }
+
+    const response = await fetch(finalUrl, {
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -36,7 +44,7 @@ const request = async <T>(endpoint: string, options?: RequestOptions): Promise<A
   } catch (error) {
     throw handleError(error);
   }
-};
+}
 
 export const apiClient = {
   get: <T>(endpoint: string, options?: Omit<RequestOptions, "body">) => 
@@ -52,7 +60,7 @@ export const apiClient = {
   put: <T>(endpoint: string, data: unknown, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
-      method: "PUT", 
+      method: "PUT",
       body: JSON.stringify(data),
     }),
 

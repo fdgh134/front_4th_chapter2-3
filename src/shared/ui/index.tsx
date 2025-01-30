@@ -50,3 +50,11 @@ export {
   TableHead,
   TableCell
 } from "./table";
+
+// alert 컴포넌트
+
+export {
+  Alert,
+  AlertTitle,
+  AlertDescription
+} from "./alert";

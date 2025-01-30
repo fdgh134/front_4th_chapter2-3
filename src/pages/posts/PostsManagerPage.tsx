@@ -19,6 +19,9 @@ import {
   UserDetailModal 
 } from "./modals";
 import { usePostSorting } from "../../features/posts";
+import { ErrorBoundary } from "../../shared/error/ErrorBoundary";
+import { ErrorToast } from "../../shared/error/ErrorToast";
+import { AppError } from "../../shared/lib";
 
 const PostsManagerPage = () => {
   const navigate = useNavigate();
@@ -35,6 +38,7 @@ const PostsManagerPage = () => {
   const { createPost, updatePost, deletePost } = usePostCard();
   const { fetchUserDetails } = useUserFeatures();
   const { sortPosts } = usePostSorting();
+  const [error, setError] = useState<AppError | null>(null);
 
   // URL 기반 상태
   const [skip, setSkip] = useState(parseInt(queryParams.get("skip") || "0"));
@@ -67,37 +71,106 @@ const PostsManagerPage = () => {
   };
 
   const handleAddPost = async (post: Omit<Post, "id">) => {
-    await createPost(post);
-    setShowAddDialog(false);
+    try {
+      await createPost(post);
+      setShowAddDialog(false);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleDeletePost = async (postId: number) => {
+    try {
+      await deletePost(postId);
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const handleEditPost = async (post: Post) => {
-    await updatePost(post.id, post);
-    setShowEditDialog(false);
+    try {
+      await updatePost(post.id, post);
+      setShowEditDialog(false);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    try {
+      setLimit(newLimit);
+      updateURL();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handlePrevPage = () => {
+    try {
+      setSkip(Math.max(0, skip - limit));
+      updateURL();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleNextPage = () => {
+    try {
+      setSkip(skip + limit);
+      updateURL();
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
-    setSortBy(newSortBy as "id" | "title" | "reactions" | "none");
-    setSortOrder(newSortOrder);
-    sortPosts(newSortBy as "id" | "title" | "reactions" | "none", newSortOrder);
-    updateURL();
+    try {
+      setSortBy(newSortBy as "id" | "title" | "reactions" | "none");
+      setSortOrder(newSortOrder);
+      sortPosts(newSortBy as "id" | "title" | "reactions" | "none", newSortOrder);
+      updateURL();
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const handleTagChange = (tag: string) => {
-    setSelectedTag(tag);
-    fetchPostsTag(tag);
-    updateURL();
+    try {
+      setSelectedTag(tag);
+      fetchPostsTag(tag);
+      updateURL();
+    } catch (error) {
+      handleError(error);
+    }
   };
 
-  const handleSearch = () => {
-    if (searchQuery) {
-      searchPosts(searchQuery);
+  const handleSearch = async () => {
+    if (!searchQuery) return;
+    
+    try {
+      await searchPosts(searchQuery);
+    } catch (error) {
+      handleError(error);
     }
   };
 
   const handleUserClick = async (user: User) => {
-    await fetchUserDetails(user.id);
-    setShowUserModal(true);
+    try {
+      await fetchUserDetails(user.id);
+      setShowUserModal(true);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleError = (error: unknown) => {
+    if (error instanceof AppError) {
+      setError(error);
+    } else if (error instanceof Error) {
+      setError(new AppError(error.message, "UNKNOWN_ERROR"));
+    } else {
+      setError(new AppError("알 수 없는 오류가 발생했습니다.", "UNKNOWN_ERROR"));
+    }
   };
 
   useEffect(() => {
@@ -125,87 +198,96 @@ const PostsManagerPage = () => {
   }, [location.search]);
 
   return (
-    <Card className="w-full max-w-6xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>게시물 관리자</span>
-          <Button onClick={() => setShowAddDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            게시물 추가
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-4">
-          <PostsFilters
-            searchQuery={searchQuery}
-            selectedTag={selectedTag}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            tags={tags}
-            onSearchChange={setSearchQuery}
-            onTagChange={handleTagChange}
-            onSortByChange={(value) => handleSortChange(value, sortOrder)}
-            onSortOrderChange={(value) => handleSortChange(sortBy, value as "asc" | "desc")}
-            onSearch={handleSearch}
-          />
-
-          {loading ? (
-            <div className="flex justify-center p-4">로딩 중...</div>
-          ) : (
-            <PostsTable
-              posts={posts}
+    <ErrorBoundary>
+      <Card className="w-full max-w-6xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>게시물 관리자</span>
+            <Button onClick={() => setShowAddDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              게시물 추가
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <PostsFilters
               searchQuery={searchQuery}
-              onEditClick={(post) => {
-                setSelectedPost(post);
-                setShowEditDialog(true);
-              }}
-              onDeleteClick={deletePost}
-              onPostClick={(post) => {
-                setSelectedPost(post);
-                setShowPostDetailDialog(true);
-              }}
-              onUserClick={handleUserClick}
+              selectedTag={selectedTag}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              tags={tags}
+              onSearchChange={setSearchQuery}
+              onTagChange={handleTagChange}
+              onSortByChange={(value) => handleSortChange(value, sortOrder)}
+              onSortOrderChange={(value) => handleSortChange(sortBy, value as "asc" | "desc")}
+              onSearch={handleSearch}
             />
-          )}
-
-          <PostsPagination
-            skip={skip}
-            limit={limit}
-            total={total}
-            onLimitChange={setLimit}
-            onPrevPage={() => setSkip(Math.max(0, skip - limit))}
-            onNextPage={() => setSkip(skip + limit)}
+  
+            {loading ? (
+              <div className="flex justify-center p-4">로딩 중...</div>
+            ) : (
+              <PostsTable
+                posts={posts}
+                searchQuery={searchQuery}
+                onEditClick={(post) => {
+                  setSelectedPost(post);
+                  setShowEditDialog(true);
+                }}
+                onDeleteClick={handleDeletePost}  // 수정: deletePost -> handleDeletePost
+                onPostClick={(post) => {
+                  setSelectedPost(post);
+                  setShowPostDetailDialog(true);
+                }}
+                onUserClick={handleUserClick}
+              />
+            )}
+  
+            <PostsPagination
+              skip={skip}
+              limit={limit}
+              total={total}
+              onLimitChange={handleLimitChange}  // 수정: setLimit -> handleLimitChange
+              onPrevPage={handlePrevPage}        // 수정: 익명 함수 -> handlePrevPage
+              onNextPage={handleNextPage}        // 수정: 익명 함수 -> handleNextPage
+            />
+          </div>
+        </CardContent>
+  
+        <AddPostModal 
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          onSubmit={handleAddPost}
+        />
+  
+        <EditPostModal
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          post={selectedPost}
+          onSubmit={handleEditPost}
+        />
+  
+        <PostDetailModal
+          open={showPostDetailDialog}
+          onOpenChange={setShowPostDetailDialog}
+          post={selectedPost}
+          searchQuery={searchQuery}
+        />
+  
+        <UserDetailModal
+          open={showUserModal}
+          onOpenChange={setShowUserModal}
+          user={selectedUser}
+        />
+  
+        {error && (
+          <ErrorToast
+            message={error.message}
+            onClose={() => setError(null)}
           />
-        </div>
-      </CardContent>
-
-      <AddPostModal 
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        onSubmit={handleAddPost}
-      />
-
-      <EditPostModal
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        post={selectedPost}
-        onSubmit={handleEditPost}
-      />
-
-      <PostDetailModal
-        open={showPostDetailDialog}
-        onOpenChange={setShowPostDetailDialog}
-        post={selectedPost}
-        searchQuery={searchQuery}
-      />
-
-      <UserDetailModal
-        open={showUserModal}
-        onOpenChange={setShowUserModal}
-        user={selectedUser}
-      />
-    </Card>
+        )}
+      </Card>
+    </ErrorBoundary>
   );
 };
 

@@ -7,12 +7,21 @@ export const postApi = {
       "/posts",
       { query: params }
     );
+    console.log("API Response:", response.data);
     return response.data;
   },
 
   getByTag: async (tag: string) => {
+    if (tag === "all") {
+      return apiClient.get<{ posts: Post[]; total: number }>(
+        "/posts",
+        { query: { limit: 10, skip: 0 } }
+      ).then(res => res.data);
+    }
+    
     const response = await apiClient.get<{ posts: Post[]; total: number }>(
-      `/posts/tag/${tag}`
+      `/posts/search`,
+      { query: { q: tag } }  // 태그를 검색어로 사용
     );
     return response.data;
   },
