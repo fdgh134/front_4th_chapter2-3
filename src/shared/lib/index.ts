@@ -1,4 +1,4 @@
-export * from "./hooks/useDebounce";
+export * from "./../hooks/useDebounce";
 export * from "./hooks/useUpdateEffect";
 export * from "./hooks/usePagination";
 export * from "./hooks/useModal";

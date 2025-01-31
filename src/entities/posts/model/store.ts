@@ -17,9 +17,15 @@ export const usePostStore = create<PostState>((set) => ({
   posts: [],
   total: 0,
   loading: true,
-  setLoading: (loading) => set({ loading }),
-  setPosts: (posts) => set({ posts }),
-  setTotal: (total) => set({ total }),
+  setLoading: (loading) => {
+    set({ loading });
+  },
+  setPosts: (posts) => {
+    set({ posts });
+  },
+  setTotal: (total) => {
+    set({ total });
+  },
   addPost: (post) => set((state) => ({
     posts: [post, ...state.posts],
     total: state.total + 1

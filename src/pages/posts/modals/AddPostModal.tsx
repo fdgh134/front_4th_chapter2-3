@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Post } from "../../../entities/posts";
 import { 
   Dialog, 
   DialogContent, 
@@ -12,11 +13,17 @@ import {
 interface AddPostModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (post: { title: string; body: string; userId: number }) => void;
+  onSubmit: (post: Omit<Post, "id">) => void | Promise<void>;
 }
 
 export const AddPostModal = ({ open, onOpenChange, onSubmit }: AddPostModalProps) => {
-  const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 });
+  const [newPost, setNewPost] = useState<Omit<Post, "id">>({
+    title: "",
+    body: "",
+    userId: 1,
+    tags: [],     // Post 타입에 맞게 추가
+    reactions: 0  // Post 타입에 맞게 추가
+  });
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

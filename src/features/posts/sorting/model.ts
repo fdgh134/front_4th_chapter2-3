@@ -22,8 +22,8 @@ export const usePostSorting = () => {
             : b.title.localeCompare(a.title);
         
         case "reactions":
-          const aReactions = (a.reactions?.likes || 0) - (a.reactions?.dislikes || 0);
-          const bReactions = (b.reactions?.likes || 0) - (b.reactions?.dislikes || 0);
+          const aReactions = typeof a.reactions === "object" ? (a.reactions.likes || 0) - (a.reactions.dislikes || 0) : 0;
+          const bReactions = typeof b.reactions === "object" ? (b.reactions.likes || 0) - (b.reactions.dislikes || 0) : 0;
           return sortOrder === "asc" ? aReactions - bReactions : bReactions - aReactions;
         
         default:

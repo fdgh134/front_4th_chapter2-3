@@ -30,7 +30,6 @@ const PostsManagerPage = () => {
 
   const store = useStore();
   const { posts, loading, total } = store.posts;
-  const { tags } = store.tags;
   const { selectedUser } = store.users;
   
   const { fetchPostsTag } = usePostTag();
@@ -174,6 +173,16 @@ const PostsManagerPage = () => {
   };
 
   useEffect(() => {
+    // 초기 데이터 로딩
+    if (selectedTag) {
+      fetchPostsTag(selectedTag);
+    } else {
+      // 전체 게시물 로딩
+      fetchPostsTag('all');
+    }
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
+
+  useEffect(() => {
     if (selectedTag) {
       fetchPostsTag(selectedTag);
     }
@@ -201,7 +210,7 @@ const PostsManagerPage = () => {
     <ErrorBoundary>
       <Card className="w-full max-w-6xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between mb-6">
             <span>게시물 관리자</span>
             <Button onClick={() => setShowAddDialog(true)}>
               <Plus className="w-4 h-4 mr-2" />
@@ -216,7 +225,6 @@ const PostsManagerPage = () => {
               selectedTag={selectedTag}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              tags={tags}
               onSearchChange={setSearchQuery}
               onTagChange={handleTagChange}
               onSortByChange={(value) => handleSortChange(value, sortOrder)}
@@ -230,6 +238,7 @@ const PostsManagerPage = () => {
               <PostsTable
                 posts={posts}
                 searchQuery={searchQuery}
+                selectedTag={selectedTag}
                 onEditClick={(post) => {
                   setSelectedPost(post);
                   setShowEditDialog(true);
@@ -240,6 +249,7 @@ const PostsManagerPage = () => {
                   setShowPostDetailDialog(true);
                 }}
                 onUserClick={handleUserClick}
+                onTagClick={handleTagChange}
               />
             )}
   

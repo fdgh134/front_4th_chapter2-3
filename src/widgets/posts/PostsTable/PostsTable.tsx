@@ -1,6 +1,7 @@
 import { Post } from "../../../entities/posts";
-import { User, UserBadge } from "../../../entities/users";
+import { User } from "../../../entities/users";
 import { ThumbsUp, ThumbsDown, MessageSquare, Edit2, Trash2 } from "lucide-react";
+import { apiClient } from "../../../shared/api";
 import { 
   Table,
   TableHeader,
@@ -14,19 +15,23 @@ import {
 interface PostsTableProps {
   posts: Post[];
   searchQuery?: string;
+  selectedTag?: string;
   onEditClick: (post: Post) => void;
   onDeleteClick: (id: number) => void;
   onPostClick: (post: Post) => void;
   onUserClick: (user: User) => void;
+  onTagClick?: (tag: string) => void;
 }
 
 export const PostsTable = ({
   posts,
   searchQuery,
+  selectedTag,
   onEditClick,
   onDeleteClick,
   onPostClick,
-  onUserClick
+  onUserClick,
+  onTagClick
 }: PostsTableProps) => {
   const highlightText = (text: string, highlight: string) => {
     if (!highlight.trim() || !text) return text;
@@ -39,6 +44,15 @@ export const PostsTable = ({
         ))}
       </span>
     );
+  };
+
+  const handleUserClick = async (userId: number) => {
+    try {
+      const response = await apiClient.get<User>(`/users/${userId}`);
+      onUserClick(response.data);
+    } catch (error) {
+      console.error("사용자 정보 가져오기 오류:", error);
+    }
   };
 
   return (
@@ -57,22 +71,52 @@ export const PostsTable = ({
           <TableRow key={post.id}>
             <TableCell>{post.id}</TableCell>
             <TableCell>
-              {highlightText(post.title, searchQuery || '')}
+              <div className="space-y-1">
+                <div>{highlightText(post.title, searchQuery || '')}</div>
+                <div className="flex flex-wrap gap-1">
+                  {post.tags?.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`px-1 text-[9px] font-semibold rounded-[4px] cursor-pointer ${
+                        selectedTag === tag
+                          ? "text-white bg-blue-500 hover:bg-blue-600"
+                          : "text-blue-800 bg-blue-100 hover:bg-blue-200"
+                      }`}
+                      onClick={() => onTagClick?.(tag)}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </TableCell>
             <TableCell>
-              {post.author && (
-                <UserBadge 
-                  user={post.author} 
-                  onClick={() => onUserClick(post.author!)}
+              <div 
+                className="flex items-center space-x-2 cursor-pointer" 
+                onClick={() => handleUserClick(post.userId)}
+              >
+                <img 
+                  src={`https://robohash.org/${post.userId}.png`}
+                  alt={`User ${post.userId}`}
+                  className="w-8 h-8 rounded-full" 
                 />
-              )}
+                <span>User {post.userId}</span>
+              </div>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
                 <ThumbsUp className="w-4 h-4" />
-                <span>{post.reactions?.likes || 0}</span>
+                <span>
+                  {typeof post.reactions === 'number' 
+                    ? post.reactions 
+                    : post.reactions.likes}
+                </span>
                 <ThumbsDown className="w-4 h-4" />
-                <span>{post.reactions?.dislikes || 0}</span>
+                <span>
+                  {typeof post.reactions === 'number' 
+                    ? 0 
+                    : post.reactions.dislikes}
+                </span>
               </div>
             </TableCell>
             <TableCell>
